@@ -20,7 +20,7 @@ class WordTemplates:
 
         self.word_list = ['it', 'we', 'he', 'on',
                           'the', 'but', 'his', 'are',
-                          'copy', 'redo', 'undo', 'save',  # text editing commands
+                          'copy', 'cmd copy', 'cmd paste', 'redo', 'cmd redo', 'undo', 'cmd undo', 'save', 'cmd attach', 'cmd save',  # text editing commands
                           'people', 'before', 'during', 'number',
                           'problem', 'example', 'company', 'country',
                           'absolutely', 'dealership', 'noteworthy', 'surprising',
