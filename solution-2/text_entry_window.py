@@ -61,6 +61,15 @@ class Application(tk.Frame):
 
         # store the tag for each segment of the drawn gesture
         self.line_tag = []
+        self.command_mode = False
+        
+        """
+        TODO:
+        - make a variable to check the CMD button
+        - if CMD on and the input text is command:
+            - Do the command
+            - Turn off the CMD
+        """
 
     # when users select a word candidate from the four labels in the middle frame
     def select_word_candidate(self, event):
@@ -96,22 +105,30 @@ class Application(tk.Frame):
                     break
         else:
             key = self.keyboard.get_key_pressed()
-            if key == '<--':  # remove the final character from the text
-                length = len(self.text.get("1.0", 'end-1c'))
-                # print(length)
-                if length > 0:
-                    self.text.delete("end-2c") # remover the last character
-            
-            else:  # not the delete key ("<--")
-                characters = self.label_word_candidates[0].cget("text")
-                characters += self.keyboard.get_key_pressed().lower()  # convert to lowercase
-                self.label_word_candidates[0].config(
-                    text=characters)  # only one key was pressed
-            
-            
-        if len(self.cursor_move_position_list) > 1:  # delete cursor trajectory
+            if key == '<--':
+                if self.text.tag_ranges(tk.SEL):
+                    self.text.delete(tk.SEL_FIRST, tk.SEL_LAST)
+                else:
+                    current_cursor_position = self.text.index(tk.INSERT)
+                    current_cursor_position_parts = current_cursor_position.split(".")
+                    line, char_index = int(current_cursor_position_parts[0]), int(current_cursor_position_parts[1])
+                    if char_index > 0:
+                        char_index -= 1  # Decrement the character index to remove the character before the cursor
+                        new_cursor_position = f"{line}.{char_index}"
+                        self.text.edit_separator()
+                        self.text.delete(new_cursor_position)  # Remove the character before the cursor
+            elif key == 'Space':
+                current_cursor_position = self.text.index(tk.INSERT)  # Get the current cursor position
+                self.text.edit_separator()
+                self.text.insert(current_cursor_position, ' ')  # Add a space at the current cursor position
+            elif len(key) <= 1:
+                current_cursor_position = self.text.index(tk.INSERT)
+                self.text.insert(current_cursor_position, key.lower())
+
+        if len(self.cursor_move_position_list) > 1:
             for x in self.cursor_move_position_list[1:]:
                 self.canvas_keyboard.delete(x[2])
+
 
 
     # users drag the mouse cursor on the keyboard while pressing the left button: drawing gestures on the keyboard

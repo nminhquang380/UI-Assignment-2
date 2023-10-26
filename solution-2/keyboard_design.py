@@ -20,7 +20,7 @@ class Keyboard:
         self.key_names = [['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
                           ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
                           ['Caps', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<--'],
-                          ['123', 'Space', 'Return']]
+                          ['Command', '123', 'Space', 'Return']]
 
         # Creating an empty list
         self.keys = []
@@ -90,14 +90,19 @@ class Keyboard:
         # the fourth row
         #  there are only three keys in the forth row, so larger size for the three keys
         for k in range(len(self.key_names[row])):
-            if k == 0:  # '123' key
-                key = Key(self.key_names[row][k], gap_two_sides + key_width * 2, key_height,
-                          horizontal_key_gap, keyboard_upper_left_y + (key_height + vertical_key_gap) * 3)
-            elif k == 2:  # 'Space' key
+            if k == 0:  # the "Command" key
+                key = Key(self.key_names[row][k], gap_two_sides + key_width - horizontal_key_gap, key_height,
+                          horizontal_key_gap + k * (key_width + horizontal_key_gap),
+                          keyboard_upper_left_y + (key_height + vertical_key_gap) * 3)
+            elif k == 1: # '123' key
+                key = Key(self.key_names[row][k], key_width, key_height,
+                          gap_two_sides + 1 * (key_width + horizontal_key_gap),
+                          keyboard_upper_left_y + (key_height + vertical_key_gap) * 3)
+            elif k == 3:  # 'Return' key
                 key = Key(self.key_names[row][k], gap_two_sides + key_width * 2, key_height,
                           gap_two_sides + 7 * (key_width + horizontal_key_gap),
                           keyboard_upper_left_y + (key_height + vertical_key_gap) * 3)
-            else:  # 'Return' key
+            else:  # 'Space' key
                 key = Key(self.key_names[row][k], key_width * 5 + horizontal_key_gap * 4, key_height,
                           gap_two_sides + 2 * (key_width + horizontal_key_gap),
                           keyboard_upper_left_y + (key_height + vertical_key_gap) * 3)
