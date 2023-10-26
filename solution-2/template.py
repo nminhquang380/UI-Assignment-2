@@ -21,6 +21,9 @@ class WordTemplates:
         self.word_list = ['it', 'we', 'he', 'on',
                           'the', 'but', 'his', 'are',
                           'copy', 'redo', 'undo', 'save',  # text editing commands
+                          # add more words
+                          'paste',
+                          
                           'people', 'before', 'during', 'number',
                           'problem', 'example', 'company', 'country',
                           'absolutely', 'dealership', 'noteworthy', 'surprising',

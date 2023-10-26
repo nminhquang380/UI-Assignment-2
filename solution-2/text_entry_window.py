@@ -3,6 +3,7 @@ import tkinter as tk
 import keyboard_design as kd
 import recognizer
 from template import Point, WordTemplates
+from tkinter import messagebox
 
 
 class Application(tk.Frame):
@@ -62,6 +63,7 @@ class Application(tk.Frame):
         # store the tag for each segment of the drawn gesture
         self.line_tag = []
         self.command_mode = False
+        self.copy_buffer = ''
         
         """
         TODO:
@@ -73,10 +75,47 @@ class Application(tk.Frame):
 
     # when users select a word candidate from the four labels in the middle frame
     def select_word_candidate(self, event):
-        btn = event.widget  # event.widget is the widget that called the event
-        #self.label_show_text.config(text=btn.cget('text'))
-        self.text.insert(tk.END, btn.cget('text')) # show it to the text widget
-        for i in range(len(self.label_word_candidates)): # clear the content of all word labels
+        # btn = event.widget  # event.widget is the widget that called the event
+        # #self.label_show_text.config(text=btn.cget('text'))
+        # self.text.insert(tk.END, btn.cget('text')) # show it to the text widget
+        # for i in range(len(self.label_word_candidates)): # clear the content of all word labels
+        #     self.label_word_candidates[i].config(text='')
+        
+        btn = event.widget
+        selected_word = btn.cget('text').lower()
+        current_cursor_position = self.text.index(tk.INSERT)
+        
+        if self.command_mode == True:
+            if selected_word == 'undo':
+                response = messagebox.askquestion("Confirmation", "Do you want to trigger the undo command?")
+                if response == "yes":
+                    if self.text.edit_undo():
+                        print('undo success')
+                    else:
+                        print('undo fail')
+            elif selected_word == 'redo':
+                response = messagebox.askquestion("Confirmation", "Do you want to trigger the redo command?")
+                if response == "yes":
+                    self.text.edit_redo()
+            elif selected_word == 'copy':
+                response = messagebox.askquestion("Confirmation", "Do you want to trigger the copy command?")
+                if response == "yes":
+                    self.copy_buffer = self.text.get(tk.SEL_FIRST, tk.SEL_LAST)
+            elif selected_word == 'paste':
+                response = messagebox.askquestion("Confirmation", "Do you want to trigger the paste command?")
+                if response == "yes":
+                    self.text.insert(current_cursor_position, self.copy_buffer)
+                    self.text.edit_separator()
+            else:
+                messagebox.showwarning("Warning", "This is not a command.")
+            # Turn off the command mode
+            self.command_mode = False
+        else:
+            self.text.insert(current_cursor_position, selected_word + " ")
+            self.text.edit_separator()
+            
+        # clear the content of all word labels
+        for i in range(len(self.label_word_candidates)):
             self.label_word_candidates[i].config(text='')
 
     # press mouse left button
@@ -119,8 +158,10 @@ class Application(tk.Frame):
                         self.text.delete(new_cursor_position)  # Remove the character before the cursor
             elif key == 'Space':
                 current_cursor_position = self.text.index(tk.INSERT)  # Get the current cursor position
-                self.text.edit_separator()
                 self.text.insert(current_cursor_position, ' ')  # Add a space at the current cursor position
+                self.text.edit_separator()
+            elif key == 'Command':
+                self.command_mode = True
             elif len(key) <= 1:
                 current_cursor_position = self.text.index(tk.INSERT)
                 self.text.insert(current_cursor_position, key.lower())
