@@ -75,7 +75,6 @@ class Application(tk.Frame):
         self.text_change_index = -1  # Index for tracking the current change
         self.attachment_label = tk.Label(self.text, text="", font=('Arial', 14))
         self.attachment_label.pack(side="bottom", anchor="w")
-        self.command_mode = False
 
 
     def save_to_file(self):
@@ -129,36 +128,56 @@ class Application(tk.Frame):
         selected_word = btn.cget('text').lower()
         current_cursor_position = self.text.index(tk.INSERT)
 
-        if self.command_mode == True:
-            if selected_word == 'undo':
-                response = messagebox.askquestion("Confirmation", "Do you want to trigger the undo command?")
-                if response == "yes":
-                    if self.text.edit_undo():
-                        print('undo success')
-                    else:
-                        print('undo fail')
-            elif selected_word == 'redo':
-                response = messagebox.askquestion("Confirmation", "Do you want to trigger the redo command?")
-                if response == "yes":
-                    self.text.edit_redo()
-            elif selected_word == 'copy':
-                response = messagebox.askquestion("Confirmation", "Do you want to trigger the copy command?")
-                if response == "yes":
-                    self.copy_buffer = self.text.get(tk.SEL_FIRST, tk.SEL_LAST)
-            elif selected_word == 'paste':
-                response = messagebox.askquestion("Confirmation", "Do you want to trigger the paste command?")
-                if response == "yes":
-                    self.text.insert(current_cursor_position, self.copy_buffer)
-                    self.text.edit_separator()
+        if selected_word.lower() == "cmd undo":
+            response = messagebox.askquestion("Confirmation", "Do you want to trigger the Undo command?")
+            if response == "yes":
+                self.undo()
             else:
-                messagebox.showwarning("Warning", "This is not a command.")
-            # Turn off the command mode
-            self.command_mode = False
+                self.text.insert(current_cursor_position, "cmd undo ")
+
+        elif selected_word.lower() == "cmd redo":
+            response = messagebox.askquestion("Confirmation", "Do you want to trigger the Redo command?")
+            if response == "yes":
+                self.redo()
+            else:
+                self.text.insert(current_cursor_position, "cmd redo ")
+
+        elif selected_word.lower() == "cmd copy":
+            response = messagebox.askquestion("Confirmation", "Do you want to trigger the Copy command?")
+            if response == "yes":
+                selected_text = self.text.get(tk.SEL_FIRST, tk.SEL_LAST)
+                self.copy_buffer = selected_text
+            else:
+                self.text.insert(current_cursor_position, "cmd copy ")
+
+        elif selected_word.lower() == "cmd paste":
+            response = messagebox.askquestion("Confirmation", "Do you want to trigger the Paste command?")
+            if response == "yes":
+                self.text.insert(current_cursor_position, self.copy_buffer)
+            else:
+                self.text.insert(current_cursor_position, "cmd paste ")
+
+            # Tùy chọn "cmd attach"
+        elif selected_word.lower() == "cmd attach":
+            response = messagebox.askquestion("Confirmation", "Do you want to trigger the Attach file?")
+            if response == "yes":
+                self.attach_file()
+            else:
+                self.text.insert(current_cursor_position, "cmd attach ")
+
+            # Tùy chọn "cmd save"
+        elif selected_word.lower() == "cmd save":
+            response = messagebox.askquestion("Confirmation", "Do you want to trigger the Save file?")
+            if response == "yes":
+                self.save_to_file()
+            else:
+                self.text.insert(current_cursor_position, "cmd save ")
+
         else:
             if self.undone_words:
                 self.undone_words.clear()
             self.entered_words.append(selected_word)
-            self.text.edit_separator()  # Create a new undo stack
+            self.text.edit_separator()  # Bắt đầu một khối Undo mới
             self.text.insert(current_cursor_position, selected_word + " ")
 
         for i in range(len(self.label_word_candidates)):
@@ -204,9 +223,7 @@ class Application(tk.Frame):
                 current_cursor_position = self.text.index(tk.INSERT)  # Get the current cursor position
                 self.text.edit_separator()
                 self.text.insert(current_cursor_position, ' ')  # Add a space at the current cursor position
-            elif key == 'Command':
-                self.command_mode = True
-            elif len(key) <= 1:
+            else:
                 current_cursor_position = self.text.index(tk.INSERT)
                 self.text.insert(current_cursor_position, key.lower())
 

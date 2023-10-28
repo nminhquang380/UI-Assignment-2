@@ -75,9 +75,18 @@ class Application(tk.Frame):
         self.text_change_index = -1  # Index for tracking the current change
         self.attachment_label = tk.Label(self.text, text="", font=('Arial', 14))
         self.attachment_label.pack(side="bottom", anchor="w")
+        
         self.command_mode = False
+        self.temp_command_letter = None
+        self.command_letter = None
+        self.key_press_timer = None
 
 
+    def key_press_timeout(self, command_letter):
+        self.command_mode = True
+        self.command_letter = command_letter
+        print(f"Command mode with letter {self.command_letter} is triggered.")
+    
     def save_to_file(self):
         text_to_save = self.text.get("1.0", "end-1c")
 
@@ -130,22 +139,22 @@ class Application(tk.Frame):
         current_cursor_position = self.text.index(tk.INSERT)
 
         if self.command_mode == True:
-            if selected_word == 'undo':
+            if selected_word == 'undo' and self.command_letter == 'U':
                 response = messagebox.askquestion("Confirmation", "Do you want to trigger the undo command?")
                 if response == "yes":
                     if self.text.edit_undo():
                         print('undo success')
                     else:
                         print('undo fail')
-            elif selected_word == 'redo':
+            elif selected_word == 'redo' and self.command_letter == 'R':
                 response = messagebox.askquestion("Confirmation", "Do you want to trigger the redo command?")
                 if response == "yes":
                     self.text.edit_redo()
-            elif selected_word == 'copy':
+            elif selected_word == 'copy' and self.command_letter == 'C':
                 response = messagebox.askquestion("Confirmation", "Do you want to trigger the copy command?")
                 if response == "yes":
                     self.copy_buffer = self.text.get(tk.SEL_FIRST, tk.SEL_LAST)
-            elif selected_word == 'paste':
+            elif selected_word == 'paste' and self.command_letter == 'P':
                 response = messagebox.askquestion("Confirmation", "Do you want to trigger the paste command?")
                 if response == "yes":
                     self.text.insert(current_cursor_position, self.copy_buffer)
@@ -154,6 +163,8 @@ class Application(tk.Frame):
                 messagebox.showwarning("Warning", "This is not a command.")
             # Turn off the command mode
             self.command_mode = False
+            self.command_letter = None
+            self.temp_command_letter = None
         else:
             if self.undone_words:
                 self.undone_words.clear()
@@ -168,15 +179,21 @@ class Application(tk.Frame):
     def mouse_left_button_press(self, event):
         self.cursor_move_position_list.append([event.x, event.y, 0])  # store x, y, segment tag
         self.keyboard.key_press(event.x, event.y)
+        self.temp_command_letter = self.keyboard.get_key_pressed()
+        temp_command_letter = self.temp_command_letter
+        if not self.command_mode:
+            
+            self.key_press_timer = self.master.after(1000, self.key_press_timeout, temp_command_letter)
+
         self.gesture_points.clear()
         # self.gesture_points.append(Point(event.x, event.y))
 
     # release mouse left button
     def mouse_left_button_release(self, event):
-        previous_x = self.cursor_move_position_list[-1][0]
-        previous_y = self.cursor_move_position_list[-1][1]
-        line_tag = self.canvas_keyboard.create_line(previous_x, previous_y, event.x, event.y)
-        self.cursor_move_position_list.append([event.x, event.y, line_tag])
+        # previous_x = self.cursor_move_position_list[-1][0]
+        # previous_y = self.cursor_move_position_list[-1][1]
+        # line_tag = self.canvas_keyboard.create_line(previous_x, previous_y, event.x, event.y)
+        # self.cursor_move_position_list.append([event.x, event.y, line_tag])
 
         self.keyboard.key_release(event.x, event.y)
         result = self.word_recognizer.recognize(self.gesture_points)
@@ -188,6 +205,10 @@ class Application(tk.Frame):
                     break
         else:
             key = self.keyboard.get_key_pressed()
+            if not self.command_mode:
+                if self.key_press_timer:
+                    self.master.after_cancel(self.key_press_timer)
+                    self.temp_command_letter = None
             if key == '<--':
                 if self.text.tag_ranges(tk.SEL):
                     self.text.delete(tk.SEL_FIRST, tk.SEL_LAST)
@@ -204,8 +225,6 @@ class Application(tk.Frame):
                 current_cursor_position = self.text.index(tk.INSERT)  # Get the current cursor position
                 self.text.edit_separator()
                 self.text.insert(current_cursor_position, ' ')  # Add a space at the current cursor position
-            elif key == 'Command':
-                self.command_mode = True
             elif len(key) <= 1:
                 current_cursor_position = self.text.index(tk.INSERT)
                 self.text.insert(current_cursor_position, key.lower())
@@ -219,6 +238,11 @@ class Application(tk.Frame):
         previous_x = self.cursor_move_position_list[-1][0]
         previous_y = self.cursor_move_position_list[-1][1]
 
+        if not self.command_mode and (previous_x != event.x or previous_y != event.y):
+            if self.key_press_timer:
+                self.master.after_cancel(self.key_press_timer)
+                self.temp_command_letter = None
+                
         line_tag = self.canvas_keyboard.create_line(previous_x, previous_y, event.x, event.y)  # draw a line
         self.cursor_move_position_list.append([event.x, event.y, line_tag])
 
