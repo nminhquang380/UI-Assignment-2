@@ -103,8 +103,12 @@ class Application(tk.Frame):
                     self.copy_buffer = selected_text
                 elif "print" in recognized_text.lower():
                     self.text.insert(current_cursor_position, self.copy_buffer)
+                elif "undo" in recognized_text.lower():
+                    self.undo()
+                elif "redo" in recognized_text.lower():
+                    self.redo()
                 else:
-                    print("Not a command")
+                    messagebox.showwarning("Warning", "This is not a command.")
         except sr.WaitTimeoutError:
             print("No speech detected. Please try again.")
         except sr.RequestError:
