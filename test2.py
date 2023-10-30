@@ -85,20 +85,26 @@ class Application(tk.Frame):
         # Nút để kích hoạt nhận diện giọng nói
         self.voice_recognition_button = tk.Button(frame_top, text="Voice Recognize",
                                                   command=self.start_voice_recognition)
-        self.voice_recognition_button.place(x=10, y=10)
+        self.voice_recognition_button.place(x=10, y=50)
 
     def start_voice_recognition(self):
+        current_cursor_position = self.text.index(tk.INSERT)
         try:
             with sr.Microphone() as source:
                 self.recognizer.adjust_for_ambient_noise(source)
-                print("Listening for 'save' command...")
+                print("Listening for command...")
                 audio = self.recognizer.listen(source)
                 recognized_text = self.recognizer.recognize_google(audio)
                 print("You said:", recognized_text)
-
                 if "save" in recognized_text.lower():
                     self.save_to_file()
-
+                elif "copy" in recognized_text.lower():
+                    selected_text = self.text.get(tk.SEL_FIRST, tk.SEL_LAST)
+                    self.copy_buffer = selected_text
+                elif "print" in recognized_text.lower():
+                    self.text.insert(current_cursor_position, self.copy_buffer)
+                else:
+                    print("Not a command")
         except sr.WaitTimeoutError:
             print("No speech detected. Please try again.")
         except sr.RequestError:
