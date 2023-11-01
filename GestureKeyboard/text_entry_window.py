@@ -101,13 +101,13 @@ class Application(tk.Frame):
                 # print(length)
                 if length > 0:
                     self.text.delete("end-2c") # remover the last character
-            '''
+            
             else:  # not the delete key ("<--")
                 characters = self.label_word_candidates[0].cget("text")
                 characters += self.keyboard.get_key_pressed().lower()  # convert to lowercase
                 self.label_word_candidates[0].config(
                     text=characters)  # only one key was pressed
-            '''
+            
             
         if len(self.cursor_move_position_list) > 1:  # delete cursor trajectory
             for x in self.cursor_move_position_list[1:]:
