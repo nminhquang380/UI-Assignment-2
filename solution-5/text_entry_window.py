@@ -27,10 +27,10 @@ class Application(tk.Frame):
         word_candidate_num = 4
         self.label_word_candidates = []  # labels used to show word candidates
         for i in range(word_candidate_num):  # the values 0 to (word_candidate_num - 1)
-            label_word = tk.Label(frame_middle, bg='white', borderwidth=2, relief='groove', font=15)  # anchor='w',
-            label_word.place(relx=i / word_candidate_num, relwidth=1 / word_candidate_num, height=frame_middle_height)
+            label_word = tk.Label(frame_middle, bg='white', borderwidth=2, relief='groove', font=15) #anchor='w',
+            label_word.place(relx=i/word_candidate_num, relwidth=1/word_candidate_num, height=frame_middle_height)
             label_word.bind("<ButtonRelease-1>", self.select_word_candidate)
-            print(i / word_candidate_num)
+            print(i/word_candidate_num)
             self.label_word_candidates.append(label_word)
 
         # the bottom frame is used to show the keyboard
@@ -62,21 +62,34 @@ class Application(tk.Frame):
         # store the tag for each segment of the drawn gesture
         self.line_tag = []
 
-        self.canvas_keyboard.bind("<Double-Button-1>", self.mouse_left_button_double_click)
+        self.canvas_keyboard.bind("<ButtonPress-3>", self.mouse_right_button_press)
+        self.canvas_keyboard.bind("<Double-Button-1>", self.mouse_left_button_double_press)
         self.entered_words = []
         self.undone_words = []
-        self.text = tk.Text(frame_top, bg='white', borderwidth=2, relief='groove', font=('Arial', 20), undo=True)
-        self.text.place(x=0, y=0, width=window_width, height=frame_top_height)
+        self.text = tk.Text(frame_top, bg='white', borderwidth=2, relief='groove', font=('Arial',20), undo=True)
+        self.text.place(x=0,y=0, width= window_width, height= frame_top_height)
 
-        # Create a variable to store the original contents of the text widget
+        #Create a variableto store the original contents of the text widget
         self.orig_text_contents = self.text.get("1.0", "end")
         self.copy_buffer = ''
-        self.text_change_stack = []  # Stack to store text changes
-        self.text_change_index = -1  # Index for tracking the current change
-        self.attachment_label = tk.Label(self.text, text="", font=('Arial', 14))
-        self.attachment_label.pack(side="bottom", anchor="w")
-        self.command_mode = False
+        self.text_change_stack = [] #Stack to store text changes
+        self.text_change_index = -1 #Index for tracking the current change
+        self.attachment_label = tk.Label(self.text, text="", font=('Arial', 12))
+        self.attachment_label.pack(side="bottom", anchor = "w")
 
+        self.command_mode = False
+        self.temp_command_letter = None
+        self.command_letter = None
+        self.key_press_timer = None
+
+
+    def trig_command(self, command_letter, mode):
+        self.command_mode = mode
+        self.command_letter = command_letter
+        if self.command_letter == None:
+            pass
+        else:
+            print(f"Command mode with letter {self.command_letter} is triggered")
 
     def save_to_file(self):
         text_to_save = self.text.get("1.0", "end-1c")
@@ -86,11 +99,12 @@ class Application(tk.Frame):
             if file_path:
                 with open(file_path, 'w') as file:
                     file.write(text_to_save)
-                messagebox.showinfo("Success", f"Text saved to {file_path}")
+                messagebox.showinfo("Success",f"Text saved to {file_path}")
             else:
-                messagebox.showinfo("Info", "File not saved.")
+                messagebox.showinfo("Info", "File not saved")
         else:
-            messagebox.showwarning("Warning", "No text to save.")
+            messagebox.showinfo("Warning", "No text found.")
+
     def attach_file(self):
         attached_file_path = filedialog.askopenfilename()
         if attached_file_path:
@@ -99,77 +113,110 @@ class Application(tk.Frame):
             self.attachment_label.config(text=f"Attached file: {self.attached_file_name}")
             messagebox.showinfo("Attachment", f"File '{self.attached_file_name}' attached.")
 
-    # when users select a word candidate from the four labels in the middle frame
-    def mouse_left_button_double_click(self, event):
-        current_cursor_position = self.text.index(tk.INSERT)
-        character = self.label_word_candidates[0].cget("text")
-        character += self.keyboard.get_key_pressed()
-        self.label_word_candidates[0].config(text=character)
-
     def undo(self):
         if self.text.edit_undo():
             self.orig_text_contents = self.text.get("1.0", "end")
 
     def text_change(self, event):
-        # Track text changes and update the stack
         if self.text_change_index < len(self.text_change_stack) - 1:
-            self.text_change_stack = self.text_change_stack[:self.text_change_index + 1]
+            self.text_change_stack = self.text_change_stack[:self.text_change_index+1]
 
-        self.text_change_stack.append(self.text.get("1.0", "end"))
-        self.text_change_index = len(self.text_change_stack) - 1
+        self.text_change_stack.append(self.text.get("1.0","end"))
+        self.text_change_index = len(self.text_change_index) -1
 
     def redo(self):
         try:
             self.text.edit_redo()
         except:
-            pass
+            print("Error: Can not be redone!!")
 
+    # when users select a word candidate from the four labels in the middle frame
     def select_word_candidate(self, event):
-        btn = event.widget
+        btn = event.widget  # event.widget is the widget that called the event
         selected_word = btn.cget('text').lower()
         current_cursor_position = self.text.index(tk.INSERT)
-
         if self.command_mode == True:
-            if selected_word == 'undo':
-                response = messagebox.askquestion("Confirmation", "Do you want to trigger the undo command?")
+            if selected_word.lower() == "undo" and self.command_letter == 'U':
+                response = messagebox.askquestion("Confirmation", "Do you want trigger the Undo Command?")
                 if response == "yes":
-                    if self.text.edit_undo():
-                        print('undo success')
+                    self.undo()
+                else:
+                    self.text.insert(current_cursor_position, "undo")
+
+            elif selected_word.lower() == "redo" and self.command_letter == 'R':
+                response = messagebox.askquestion("Confirmation", "Do you want trigger the Redo Command?")
+                if response == "yes":
+                    self.redo()
+                else:
+                    self.text.insert(current_cursor_position, "redo")
+
+            elif selected_word.lower() == "copy" and self.command_letter == 'C':
+                response = messagebox.askquestion("Confirmation", "Do you want trigger the Copy Command?")
+                try:
+                    if response == "yes":
+                        selected_text = self.text.get(tk.SEL_FIRST, tk.SEL_LAST)
+                        self.copy_buffer = selected_text
                     else:
-                        print('undo fail')
-            elif selected_word == 'redo':
-                response = messagebox.askquestion("Confirmation", "Do you want to trigger the redo command?")
-                if response == "yes":
-                    self.text.edit_redo()
-            elif selected_word == 'copy':
-                response = messagebox.askquestion("Confirmation", "Do you want to trigger the copy command?")
-                if response == "yes":
-                    self.copy_buffer = self.text.get(tk.SEL_FIRST, tk.SEL_LAST)
-            elif selected_word == 'paste':
-                response = messagebox.askquestion("Confirmation", "Do you want to trigger the paste command?")
+                        self.text.insert(current_cursor_position, "copy")
+                except:
+                    print("There is no text to copy!")
+
+            elif selected_word.lower() == "paste" and self.command_letter == 'P':
+                response = messagebox.askquestion("Confirmation", "Do you want trigger the Paste Command?")
                 if response == "yes":
                     self.text.insert(current_cursor_position, self.copy_buffer)
-                    self.text.edit_separator()
+                else:
+                    self.text.insert(current_cursor_position, "paste")
+
+            elif selected_word.lower() == "attach" and self.command_letter == 'A':
+                response = messagebox.askquestion("Confirmation", "Do you want trigger the Attach Command?")
+                if response == "yes":
+                    self.attach_file()
+                else:
+                    self.text.insert(current_cursor_position, "attach")
+
+            elif selected_word.lower() == "save" and self.command_letter == 'A':
+                response = messagebox.askquestion("Confirmation", "Do you want trigger the Save Command?")
+                if response == "yes":
+                    self.save_to_file()
+                else:
+                    self.text.insert(current_cursor_position, "save")
             else:
-                messagebox.showwarning("Warning", "This is not a command.")
-            # Turn off the command mode
-            self.command_mode = False
+                messagebox.showwarning("Warning", "This is not a valid command!")
+                # Turn off the command mode
+                self.command_mode = False
+                self.command_letter = None
+                self.temp_command_letter = None
+
         else:
             if self.undone_words:
                 self.undone_words.clear()
             self.entered_words.append(selected_word)
-            self.text.edit_separator()  # Create a new undo stack
+            self.text.edit_separator()
             self.text.insert(current_cursor_position, selected_word + " ")
 
-        for i in range(len(self.label_word_candidates)):
+        for i in range(len(self.label_word_candidates)): # clear the content of all word labels
             self.label_word_candidates[i].config(text='')
 
+    #Command Button
+    def mouse_left_button_double_press(self, event):
+        self.temp_command_letter = self.keyboard.get_key_pressed()
+        temp_command_letter = self.temp_command_letter
+        if not self.command_mode:
+            self.key_press_timer = self.master.after(1000, self.trig_command, temp_command_letter, True)
+
+        self.gesture_points.clear()
     # press mouse left button
     def mouse_left_button_press(self, event):
         self.cursor_move_position_list.append([event.x, event.y, 0])  # store x, y, segment tag
         self.keyboard.key_press(event.x, event.y)
         self.gesture_points.clear()
         # self.gesture_points.append(Point(event.x, event.y))
+
+    def mouse_right_button_press(self,event):
+        if self.command_mode:
+            print(f"Command mode with {self.command_letter} has been deactivated")
+            self.trig_command(None,False)
 
     # release mouse left button
     def mouse_left_button_release(self, event):
@@ -204,8 +251,6 @@ class Application(tk.Frame):
                 current_cursor_position = self.text.index(tk.INSERT)  # Get the current cursor position
                 self.text.edit_separator()
                 self.text.insert(current_cursor_position, ' ')  # Add a space at the current cursor position
-            elif key == 'Command':
-                self.command_mode = True
             elif len(key) <= 1:
                 current_cursor_position = self.text.index(tk.INSERT)
                 self.text.insert(current_cursor_position, key.lower())
@@ -218,6 +263,11 @@ class Application(tk.Frame):
     def mouse_move_left_button_down(self, event):
         previous_x = self.cursor_move_position_list[-1][0]
         previous_y = self.cursor_move_position_list[-1][1]
+
+        if not self.command_mode and (previous_x != event.x or previous_y != event.y):
+            if self.key_press_timer:
+                self.master.after_cancel(self.key_press_timer)
+                self.temp_command_letter = None
 
         line_tag = self.canvas_keyboard.create_line(previous_x, previous_y, event.x, event.y)  # draw a line
         self.cursor_move_position_list.append([event.x, event.y, line_tag])
