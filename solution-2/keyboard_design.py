@@ -20,7 +20,7 @@ class Keyboard:
         self.key_names = [['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
                           ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
                           ['Caps', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<--'],
-                          ['Command', '123', 'Space', 'Return']]
+                          ['Command', '123', 'Space', 'Return']] # Add a command button
 
         # Creating an empty list
         self.keys = []
