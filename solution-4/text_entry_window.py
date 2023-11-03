@@ -169,62 +169,83 @@ class Application(tk.Frame):
             pass
 
     def select_word_candidate(self, event):
+        # Get the button that triggered the event
         btn = event.widget
+        # Extract the selected word from the button and convert it to lowercase
         selected_word = btn.cget('text').lower()
+        # Get the current cursor position in the text widget
         current_cursor_position = self.text.index(tk.INSERT)
 
+        # Check if the selected word is "cmd undo"
         if selected_word.lower() == "cmd undo":
+            # Ask for confirmation before triggering the Undo command
             response = messagebox.askquestion("Confirmation", "Do you want to trigger the Undo command?")
             if response == "yes":
-                self.undo()
+                self.undo()  # Call the undo function
             else:
-                self.text.insert(current_cursor_position, "cmd undo ")
+                self.text.insert(current_cursor_position, "cmd undo ")  # Insert "cmd undo" at the current cursor position
 
+        # Check if the selected word is "cmd redo"
         elif selected_word.lower() == "cmd redo":
+            # Ask for confirmation before triggering the Redo command
             response = messagebox.askquestion("Confirmation", "Do you want to trigger the Redo command?")
             if response == "yes":
-                self.redo()
+                self.redo()  # Call the redo function
             else:
-                self.text.insert(current_cursor_position, "cmd redo ")
+                self.text.insert(current_cursor_position, "cmd redo ")  # Insert "cmd redo" at the current cursor position
 
+        # Check if the selected word is "cmd copy"
         elif selected_word.lower() == "cmd copy":
+            # Ask for confirmation before triggering the Copy command
             response = messagebox.askquestion("Confirmation", "Do you want to trigger the Copy command?")
             if response == "yes":
+                # Get the selected text and store it in the copy buffer
                 selected_text = self.text.get(tk.SEL_FIRST, tk.SEL_LAST)
                 self.copy_buffer = selected_text
             else:
-                self.text.insert(current_cursor_position, "cmd copy ")
+                self.text.insert(current_cursor_position, "cmd copy ")  # Insert "cmd copy" at the current cursor position
 
+        # Check if the selected word is "cmd paste"
         elif selected_word.lower() == "cmd paste":
+            # Ask for confirmation before triggering the Paste command
             response = messagebox.askquestion("Confirmation", "Do you want to trigger the Paste command?")
             if response == "yes":
+                # Insert the content of the copy buffer at the current cursor position
                 self.text.insert(current_cursor_position, self.copy_buffer)
             else:
-                self.text.insert(current_cursor_position, "cmd paste ")
+                self.text.insert(current_cursor_position, "cmd paste ")  # Insert "cmd paste" at the current cursor position
 
-            # Tùy chọn "cmd attach"
+        # Check if the selected word is "cmd attach"
         elif selected_word.lower() == "cmd attach":
+            # Ask for confirmation before triggering the Attach file command
             response = messagebox.askquestion("Confirmation", "Do you want to trigger the Attach file?")
             if response == "yes":
-                self.attach_file()
+                self.attach_file()  # Call the attach file function
             else:
-                self.text.insert(current_cursor_position, "cmd attach ")
+                self.text.insert(current_cursor_position, "cmd attach ")  # Insert "cmd attach" at the current cursor position
 
-            # Tùy chọn "cmd save"
+        # Check if the selected word is "cmd save"
         elif selected_word.lower() == "cmd save":
+            # Ask for confirmation before triggering the Save file command
             response = messagebox.askquestion("Confirmation", "Do you want to trigger the Save file?")
             if response == "yes":
-                self.save_to_file()
+                self.save_to_file()  # Call the save to file function
             else:
-                self.text.insert(current_cursor_position, "cmd save ")
+                self.text.insert(current_cursor_position, "cmd save ")  # Insert "cmd save" at the current cursor position
 
+        # If none of the special commands were triggered, handle normal text input
         else:
+            # Clear the undone_words list if it is not empty
             if self.undone_words:
                 self.undone_words.clear()
+            # Append the selected word to the entered_words list
             self.entered_words.append(selected_word)
-            self.text.edit_separator()  # Bắt đầu một khối Undo mới
+            # Create an edit separator to demarcate this change
+            self.text.edit_separator()  
+            # Insert the selected word at the current cursor position followed by a space
             self.text.insert(current_cursor_position, selected_word + " ")
 
+        # Clear the labels displaying word candidates
         for i in range(len(self.label_word_candidates)):
             self.label_word_candidates[i].config(text='')
 

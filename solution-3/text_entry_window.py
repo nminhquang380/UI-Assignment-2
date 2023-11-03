@@ -76,17 +76,18 @@ class Application(tk.Frame):
         self.attachment_label = tk.Label(self.text, text="", font=('Arial', 14))
         self.attachment_label.pack(side="bottom", anchor="w")
         
-        self.command_mode = False
-        self.temp_command_letter = None
-        self.command_letter = None
-        self.key_press_timer = None
+        self.command_mode = False # Store the current mode
+        self.temp_command_letter = None # Store the first letter of words
+        self.command_letter = None # Store the first letter of the commands
+        self.key_press_timer = None # Count the time of holding first letter
 
-
+    # If holding the first letter more than 1 second
     def key_press_timeout(self, command_letter):
-        self.command_mode = True
-        self.command_letter = command_letter
+        self.command_mode = True # Change to command mode
+        self.command_letter = command_letter # Store the first letter
         print(f"Command mode with letter {self.command_letter} is triggered.")
-    
+        
+    # Method to save the contents of the text widget to a file
     def save_to_file(self):
         text_to_save = self.text.get("1.0", "end-1c")
 
@@ -100,6 +101,8 @@ class Application(tk.Frame):
                 messagebox.showinfo("Info", "File not saved.")
         else:
             messagebox.showwarning("Warning", "No text to save.")
+    
+    # Method to attach a file to the application
     def attach_file(self):
         attached_file_path = filedialog.askopenfilename()
         if attached_file_path:
@@ -134,44 +137,56 @@ class Application(tk.Frame):
             pass
 
     def select_word_candidate(self, event):
+        # Get the button that triggered the event
         btn = event.widget
+        # Extract the selected word from the button and convert it to lowercase
         selected_word = btn.cget('text').lower()
+        # Get the current cursor position in the text widget
         current_cursor_position = self.text.index(tk.INSERT)
 
+        # Check if the command mode is active
         if self.command_mode == True:
+            # Execute corresponding action based on the selected word and command letter
             if selected_word == 'undo' and self.command_letter == 'U':
+                # Ask for confirmation before triggering the undo command
                 response = messagebox.askquestion("Confirmation", "Do you want to trigger the undo command?")
                 if response == "yes":
-                    if self.text.edit_undo():
-                        print('undo success')
-                    else:
-                        print('undo fail')
+                    self.undo()  # Call the undo method
             elif selected_word == 'redo' and self.command_letter == 'R':
+                # Ask for confirmation before triggering the redo command
                 response = messagebox.askquestion("Confirmation", "Do you want to trigger the redo command?")
                 if response == "yes":
-                    self.text.edit_redo()
+                    self.redo()  # Call the redo method
             elif selected_word == 'copy' and self.command_letter == 'C':
+                # Ask for confirmation before triggering the copy command
                 response = messagebox.askquestion("Confirmation", "Do you want to trigger the copy command?")
                 if response == "yes":
+                    # Store the selected text in the copy buffer
                     self.copy_buffer = self.text.get(tk.SEL_FIRST, tk.SEL_LAST)
             elif selected_word == 'paste' and self.command_letter == 'P':
+                # Ask for confirmation before triggering the paste command
                 response = messagebox.askquestion("Confirmation", "Do you want to trigger the paste command?")
                 if response == "yes":
+                    # Insert the content of the copy buffer at the current cursor position
                     self.text.insert(current_cursor_position, self.copy_buffer)
-                    self.text.edit_separator()
+                    self.text.edit_separator()  # Create a new undo stack for this action
             else:
-                messagebox.showwarning("Warning", "This is not a command.")
-            # Turn off the command mode
+                messagebox.showwarning("Warning", "This is not a command.")  # Display a warning for invalid command
+            # Turn off the command mode and reset command-related variables
             self.command_mode = False
             self.command_letter = None
             self.temp_command_letter = None
         else:
+            # Clear the undone_words list if it is not empty
             if self.undone_words:
                 self.undone_words.clear()
+            # Append the selected word to the entered_words list
             self.entered_words.append(selected_word)
-            self.text.edit_separator()  # Create a new undo stack
+            self.text.edit_separator()  # Create a new undo stack for this action
+            # Insert the selected word at the current cursor position followed by a space
             self.text.insert(current_cursor_position, selected_word + " ")
 
+        # Clear the labels displaying word candidates
         for i in range(len(self.label_word_candidates)):
             self.label_word_candidates[i].config(text='')
 

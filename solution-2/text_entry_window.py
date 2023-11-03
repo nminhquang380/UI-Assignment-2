@@ -124,60 +124,60 @@ class Application(tk.Frame):
         except:
             pass
 
-def select_word_candidate(self, event):
-    # Get the button that triggered the event
-    btn = event.widget
-    # Extract the selected word from the button and convert it to lowercase
-    selected_word = btn.cget('text').lower()
-    # Get the current cursor position in the text widget
-    current_cursor_position = self.text.index(tk.INSERT)
+    def select_word_candidate(self, event):
+        # Get the button that triggered the event
+        btn = event.widget
+        # Extract the selected word from the button and convert it to lowercase
+        selected_word = btn.cget('text').lower()
+        # Get the current cursor position in the text widget
+        current_cursor_position = self.text.index(tk.INSERT)
 
-    # Check if the command mode is active
-    if self.command_mode == True:
-        # Execute corresponding action based on the selected word
-        if selected_word == 'undo':
-            # Ask for confirmation before triggering the undo command
-            response = messagebox.askquestion("Confirmation", "Do you want to trigger the undo command?")
-            if response == "yes":
-                if self.text.edit_undo():  # Attempt to perform the undo operation
-                    print('undo success')  # Print success message if undo is successful
-                else:
-                    print('undo fail')  # Print fail message if undo is not possible
-        elif selected_word == 'redo':
-            # Ask for confirmation before triggering the redo command
-            response = messagebox.askquestion("Confirmation", "Do you want to trigger the redo command?")
-            if response == "yes":
-                self.text.edit_redo()  # Perform the redo operation
-        elif selected_word == 'copy':
-            # Ask for confirmation before triggering the copy command
-            response = messagebox.askquestion("Confirmation", "Do you want to trigger the copy command?")
-            if response == "yes":
-                # Store the selected text in the copy buffer
-                self.copy_buffer = self.text.get(tk.SEL_FIRST, tk.SEL_LAST)
-        elif selected_word == 'paste':
-            # Ask for confirmation before triggering the paste command
-            response = messagebox.askquestion("Confirmation", "Do you want to trigger the paste command?")
-            if response == "yes":
-                # Insert the content of the copy buffer at the current cursor position
-                self.text.insert(current_cursor_position, self.copy_buffer)
-                self.text.edit_separator()  # Create a new undo stack for this action
+        # Check if the command mode is active
+        if self.command_mode == True:
+            # Execute corresponding action based on the selected word
+            if selected_word == 'undo':
+                # Ask for confirmation before triggering the undo command
+                response = messagebox.askquestion("Confirmation", "Do you want to trigger the undo command?")
+                if response == "yes":
+                    if self.text.edit_undo():  # Attempt to perform the undo operation
+                        print('undo success')  # Print success message if undo is successful
+                    else:
+                        print('undo fail')  # Print fail message if undo is not possible
+            elif selected_word == 'redo':
+                # Ask for confirmation before triggering the redo command
+                response = messagebox.askquestion("Confirmation", "Do you want to trigger the redo command?")
+                if response == "yes":
+                    self.text.edit_redo()  # Perform the redo operation
+            elif selected_word == 'copy':
+                # Ask for confirmation before triggering the copy command
+                response = messagebox.askquestion("Confirmation", "Do you want to trigger the copy command?")
+                if response == "yes":
+                    # Store the selected text in the copy buffer
+                    self.copy_buffer = self.text.get(tk.SEL_FIRST, tk.SEL_LAST)
+            elif selected_word == 'paste':
+                # Ask for confirmation before triggering the paste command
+                response = messagebox.askquestion("Confirmation", "Do you want to trigger the paste command?")
+                if response == "yes":
+                    # Insert the content of the copy buffer at the current cursor position
+                    self.text.insert(current_cursor_position, self.copy_buffer)
+                    self.text.edit_separator()  # Create a new undo stack for this action
+            else:
+                messagebox.showwarning("Warning", "This is not a command.")  # Display a warning for invalid command
+            # Turn off the command mode
+            self.command_mode = False
         else:
-            messagebox.showwarning("Warning", "This is not a command.")  # Display a warning for invalid command
-        # Turn off the command mode
-        self.command_mode = False
-    else:
-        # Clear the undone_words list if it is not empty
-        if self.undone_words:
-            self.undone_words.clear()
-        # Append the selected word to the entered_words list
-        self.entered_words.append(selected_word)
-        self.text.edit_separator()  # Create a new undo stack for this action
-        # Insert the selected word at the current cursor position followed by a space
-        self.text.insert(current_cursor_position, selected_word + " ")
+            # Clear the undone_words list if it is not empty
+            if self.undone_words:
+                self.undone_words.clear()
+            # Append the selected word to the entered_words list
+            self.entered_words.append(selected_word)
+            self.text.edit_separator()  # Create a new undo stack for this action
+            # Insert the selected word at the current cursor position followed by a space
+            self.text.insert(current_cursor_position, selected_word + " ")
 
-    # Clear the labels displaying word candidates
-    for i in range(len(self.label_word_candidates)):
-        self.label_word_candidates[i].config(text='')
+        # Clear the labels displaying word candidates
+        for i in range(len(self.label_word_candidates)):
+            self.label_word_candidates[i].config(text='')
 
     # press mouse left button
     def mouse_left_button_press(self, event):
