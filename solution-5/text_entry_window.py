@@ -62,7 +62,7 @@ class Application(tk.Frame):
         # store the tag for each segment of the drawn gesture
         self.line_tag = []
 
-        self.canvas_keyboard.bind("<ButtonPress-3>", self.mouse_right_button_press)
+        #self.canvas_keyboard.bind("<ButtonPress-3>", self.mouse_right_button_press)
         self.canvas_keyboard.bind("<Double-Button-1>", self.mouse_left_button_double_press)
         self.entered_words = []
         self.undone_words = []
@@ -140,6 +140,8 @@ class Application(tk.Frame):
                 response = messagebox.askquestion("Confirmation", "Do you want trigger the Undo Command?")
                 if response == "yes":
                     self.undo()
+                    print(f"Command mode with {self.command_letter} has been deactivated")
+                    self.trig_command(None, False)
                 else:
                     self.text.insert(current_cursor_position, "undo")
 
@@ -147,6 +149,8 @@ class Application(tk.Frame):
                 response = messagebox.askquestion("Confirmation", "Do you want trigger the Redo Command?")
                 if response == "yes":
                     self.redo()
+                    print(f"Command mode with {self.command_letter} has been deactivated")
+                    self.trig_command(None, False)
                 else:
                     self.text.insert(current_cursor_position, "redo")
 
@@ -156,6 +160,8 @@ class Application(tk.Frame):
                     if response == "yes":
                         selected_text = self.text.get(tk.SEL_FIRST, tk.SEL_LAST)
                         self.copy_buffer = selected_text
+                        print(f"Command mode with {self.command_letter} has been deactivated")
+                        self.trig_command(None, False)
                     else:
                         self.text.insert(current_cursor_position, "copy")
                 except:
@@ -165,6 +171,8 @@ class Application(tk.Frame):
                 response = messagebox.askquestion("Confirmation", "Do you want trigger the Paste Command?")
                 if response == "yes":
                     self.text.insert(current_cursor_position, self.copy_buffer)
+                    print(f"Command mode with {self.command_letter} has been deactivated")
+                    self.trig_command(None, False)
                 else:
                     self.text.insert(current_cursor_position, "paste")
 
@@ -172,17 +180,22 @@ class Application(tk.Frame):
                 response = messagebox.askquestion("Confirmation", "Do you want trigger the Attach Command?")
                 if response == "yes":
                     self.attach_file()
+                    print(f"Command mode with {self.command_letter} has been deactivated")
+                    self.trig_command(None, False)
                 else:
                     self.text.insert(current_cursor_position, "attach")
 
-            elif selected_word.lower() == "save" and self.command_letter == 'A':
+            elif selected_word.lower() == "save" and self.command_letter == 'S':
                 response = messagebox.askquestion("Confirmation", "Do you want trigger the Save Command?")
                 if response == "yes":
                     self.save_to_file()
+                    print(f"Command mode with {self.command_letter} has been deactivated")
+                    self.trig_command(None, False)
                 else:
                     self.text.insert(current_cursor_position, "save")
             else:
                 messagebox.showwarning("Warning", "This is not a valid command!")
+                print(f"Command mode with {self.command_letter} has been deactivated")
                 # Turn off the command mode
                 self.command_mode = False
                 self.command_letter = None
@@ -204,7 +217,7 @@ class Application(tk.Frame):
         temp_command_letter = self.temp_command_letter
         if not self.command_mode:
             self.key_press_timer = self.master.after(1000, self.trig_command, temp_command_letter, True)
-
+        self.keyboard.key_press(460,120)
         self.gesture_points.clear()
     # press mouse left button
     def mouse_left_button_press(self, event):
@@ -213,10 +226,9 @@ class Application(tk.Frame):
         self.gesture_points.clear()
         # self.gesture_points.append(Point(event.x, event.y))
 
-    def mouse_right_button_press(self,event):
-        if self.command_mode:
-            print(f"Command mode with {self.command_letter} has been deactivated")
-            self.trig_command(None,False)
+    """def mouse_right_button_press(self,event):
+        print(f"Command mode with {self.command_letter} has been deactivated")
+        self.trig_command(None,False)"""
 
     # release mouse left button
     def mouse_left_button_release(self, event):
@@ -251,7 +263,7 @@ class Application(tk.Frame):
                 current_cursor_position = self.text.index(tk.INSERT)  # Get the current cursor position
                 self.text.edit_separator()
                 self.text.insert(current_cursor_position, ' ')  # Add a space at the current cursor position
-            elif len(key) <= 1:
+            else:
                 current_cursor_position = self.text.index(tk.INSERT)
                 self.text.insert(current_cursor_position, key.lower())
 

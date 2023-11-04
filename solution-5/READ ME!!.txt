@@ -1,0 +1,20 @@
+Aurthor: Arian Zahir
+
+Instruction: Double tap the first letter to start the command. Then type the  command and release while completing
+the command. The command mode turns off once the command is completed
+
+Example: Double tap "C" to activate command mode with letter "C", write the command and select command
+from the middle window to activate the command.
+
+Example Video:
+1. We copy the text with "copy" command. We trigger the command double-clicking "C" on the keyboard. And then we type
+"copy" using gesture keyboard. At last, we select "copy" from the middle window and the command is executed.
+
+2. We paste the text using "paste" command. We trigger the command double-clicking "P" on the keyboard. And then we type
+"paste" using gesture keyboard. At last, we select "paste" from the middle window and the command is executed.
+
+3. We attach a file using "attach" command. We trigger the command double-clicking "A" on the keyboard. And then we type
+"attach" using gesture keyboard. At last, we select "attach" from the middle window and the command is executed.
+
+4. We save the file using "save" command. We trigger the command double-clicking "S" on the keyboard. And then we type
+"save" using gesture keyboard. At last, we select "save" from the middle window and the command is executed.
